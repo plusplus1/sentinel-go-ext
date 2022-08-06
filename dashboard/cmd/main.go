@@ -88,9 +88,6 @@ func before(ctx *cli.Context) error {
 	httpEngine.Use(gzip.Gzip(gzip.BestSpeed))
 
 	// init routes
-	httpEngine.GET("/version", func(context *gin.Context) {
-		context.String(200, appName+" v"+appVer)
-	})
 	dashboard.InstallApi(httpEngine)
 
 	return nil

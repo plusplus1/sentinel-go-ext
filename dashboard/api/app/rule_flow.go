@@ -31,7 +31,6 @@ func ListFlowRules(c *gin.Context) {
 
 	inst := builder(app)
 	rules, err := inst.ListFlowRules(res...)
-	
 	if err != nil {
 		c.JSON(200, appResp{Status: 999, Msg: err.Error()})
 		return

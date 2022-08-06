@@ -12,6 +12,9 @@ import (
 
 func InstallApi(router gin.IRouter) {
 
+	router.GET("/version", func(c *gin.Context) { c.String(200, string(webui.Version)) })
+	router.GET("/favicon.ico", func(c *gin.Context) { c.Data(200, `image/x-icon`, webui.FavIco) })
+
 	// set auth
 	auth := gin.BasicAuth(config.AppSettings().Accounts)
 	// set
