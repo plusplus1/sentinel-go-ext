@@ -1,0 +1,16 @@
+accounts:
+  "admin": "admin"
+
+app_list:
+  - app: "app1"
+    desc: "app1 app"
+    env: "prod"
+    url: "etcd://127.0.0.1:2379?timeout=500"
+
+  - app: "app2"
+    desc: "app2 app"
+    env: "dev"
+    url: "etcd://127.0.0.1:2379?timeout=500"
+
+
+
