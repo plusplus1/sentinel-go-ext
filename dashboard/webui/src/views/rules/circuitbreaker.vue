@@ -2,13 +2,14 @@
   <div class="app-container" v-loading:="loading">
     <div v-if="rules && rules.length > 0">
       <el-table :data="rules" style="width: 100%">
-        <el-table-column type="expand">
+        <!-- <el-table-column type="expand">
           <template slot-scope="props">
             <pre>{{ JSON.stringify(props.row, null, 4) }}</pre>
           </template>
-        </el-table-column>
+        </el-table-column> -->
         <el-table-column prop="resource" label="资源名" />
         <el-table-column prop="statIntervalMs" label="统计窗口/毫秒" width="200" />
+        <el-table-column prop="retryTimeoutMs" label="熔断时长/毫秒" width="200" />
         <el-table-column prop="threshold" label="阈值" width="100" />
         <el-table-column prop="strategy" label="熔断策略" width="250">
           <template slot-scope="props">
@@ -45,8 +46,12 @@
         >
           <el-input v-model="dialogForm.resource" />
         </el-form-item>
+
         <el-form-item label="统计窗口/毫秒" prop="statIntervalMs">
-          <el-input-number v-model="dialogForm.statIntervalMs" :min="100" :max="3000" />
+          <el-input-number v-model="dialogForm.statIntervalMs" :min="100" />
+        </el-form-item>
+        <el-form-item label="统计窗口/毫秒" prop="retryTimeoutMs">
+          <el-input-number v-model="dialogForm.retryTimeoutMs" :min="100" />
         </el-form-item>
         <el-form-item label="阈值" prop="threshold">
           <el-input-number v-model="dialogForm.threshold" :min="0" />
@@ -182,8 +187,8 @@ export default {
       const that = this
       that.loading = true
       listCircuitbreakerRules(that.appId).then(resp => {
-        if (resp && resp.data) {
-          that.rules = resp.data
+        if (resp && resp.code === 0) {
+          that.rules = resp.data || []
         }
         that.loading = false
       }).catch(() => { that.loading = false })

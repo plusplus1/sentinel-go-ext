@@ -2,11 +2,11 @@
   <div class="app-container" v-loading:="loading">
     <div v-if="rules && rules.length > 0">
       <el-table :data="rules" style="width: 100%">
-        <el-table-column type="expand">
+        <!-- <el-table-column type="expand">
           <template slot-scope="props">
             <pre>{{ JSON.stringify(props.row, null, 4) }}</pre>
           </template>
-        </el-table-column>
+        </el-table-column> -->
         <el-table-column prop="resource" label="资源名" />
         <el-table-column prop="statIntervalInMs" label="统计间隔/毫秒" width="200" />
         <el-table-column prop="threshold" label="阈值" width="100" />
@@ -211,8 +211,8 @@ export default {
       const that = this
       that.loading = true
       listFlowRules(that.appId).then(resp => {
-        if (resp && resp.data) {
-          that.rules = resp.data
+        if (resp && resp.code === 0) {
+          that.rules = resp.data || []
         }
         that.loading = false
       }).catch(() => { that.loading = false })
