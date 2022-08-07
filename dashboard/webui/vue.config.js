@@ -26,7 +26,7 @@ module.exports = {
    */
   publicPath: '/web/dist/',
   indexPath: 'home.html',
-  outputDir: 'dist',
+  outputDir: '../dist/dist',
   assetsDir: 'static',
   lintOnSave: process.env.NODE_ENV === 'development',
   productionSourceMap: false,
@@ -37,7 +37,25 @@ module.exports = {
       warnings: false,
       errors: true
     },
-    before: require('./mock/mock-server.js')
+    before: require('./mock/mock-server.js'),
+    proxy: {
+      '/api': {
+        target: 'http://localhost:6111',
+        ws: true,
+        changeOrigin: true,
+        onProxyReq: function(proxyReq, req, res, options) {
+          if (req.body) {
+            const bodyData = JSON.stringify(req.body)
+            // incase if content-type is application/x-www-form-urlencoded -> we need to change to application/json
+            proxyReq.setHeader('Content-Type', 'application/json')
+            proxyReq.setHeader('Content-Length', Buffer.byteLength(bodyData))
+            // stream the content
+            proxyReq.write(bodyData)
+          }
+        }
+      }
+    }
+
   },
   configureWebpack: {
     // provide the app's title in webpack's name field, so that

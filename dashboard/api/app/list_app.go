@@ -7,9 +7,9 @@ import (
 )
 
 type appResp struct {
-	Status int         `json:"status"`
-	Msg    string      `json:"msg,omitempty"`
-	Data   interface{} `json:"data,omitempty"`
+	Code int         `json:"code"`
+	Msg  string      `json:"message,omitempty"`
+	Data interface{} `json:"data,omitempty"`
 }
 
 func ListApps(c *gin.Context) {

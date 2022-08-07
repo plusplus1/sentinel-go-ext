@@ -1,125 +1,59 @@
 <template>
-  <div :class="{ 'show': show }" class="header-search">
-    <el-link class="search-icon"> {{ currentApp }} （ {{ currentEnv }} ）</el-link>
+  <div class="header-search">
+    <span class="search-icon">
+
+      <el-dropdown @command="handleCommand">
+        <span class="el-dropdown-link">
+          <el-link> <span>当前APP: </span>
+            <el-tag>
+              {{ currentApp.name }} （ {{ currentApp.env }} ）
+            </el-tag>
+          </el-link> <i class="el-icon-arrow-down el-icon--right" />
+        </span>
+        <el-dropdown-menu slot="dropdown">
+          <el-dropdown-item v-for="app in allApp" :key="app.id" :command="app">
+            {{ app.name }} （ {{ app.env }} ）
+          </el-dropdown-item>
+        </el-dropdown-menu>
+      </el-dropdown>
+    </span>
   </div>
 </template>
 
 <script>
 // fuse is a lightweight fuzzy-search module
 // make search results more in line with expectations
-import Fuse from 'fuse.js'
-import path from 'path'
 
 export default {
   name: 'AppEnv',
   data() {
     return {
-      currentApp: 'AppName',
-      currentEnv: 'prod',
-      show: false,
-      fuse: undefined
-
+      dialogVisible: false
     }
   },
   computed: {
-    routes() {
-      return this.$store.getters.permission_routes
+    currentApp() {
+      return this.$store.getters.currentApp
+    },
+    allApp() {
+      return this.$store.getters.allApp
     }
   },
-  watch: {
-    routes() {
-      this.searchPool = this.generateRoutes(this.routes)
-    },
-    searchPool(list) {
-      this.initFuse(list)
-    },
-    show(value) {
-      if (value) {
-        document.body.addEventListener('click', this.close)
-      } else {
-        document.body.removeEventListener('click', this.close)
-      }
-    }
-  },
+  // watch: {
+  // },
   mounted() {
-    this.searchPool = this.generateRoutes(this.routes)
+    this.reloadApps()
   },
   methods: {
-    click() {
-      this.show = !this.show
-      if (this.show) {
-        this.$refs.headerSearchSelect && this.$refs.headerSearchSelect.focus()
-      }
+    reloadApps() {
+      this.$store.dispatch('env/reLoadApps')
     },
-    close() {
-      this.$refs.headerSearchSelect && this.$refs.headerSearchSelect.blur()
-      this.options = []
-      this.show = false
-    },
-    change(val) {
-      this.$router.push(val.path)
-      this.search = ''
-      this.options = []
-      this.$nextTick(() => {
-        this.show = false
-      })
-    },
-    initFuse(list) {
-      this.fuse = new Fuse(list, {
-        shouldSort: true,
-        threshold: 0.4,
-        location: 0,
-        distance: 100,
-        maxPatternLength: 32,
-        minMatchCharLength: 1,
-        keys: [{
-          name: 'title',
-          weight: 0.7
-        }, {
-          name: 'path',
-          weight: 0.3
-        }]
-      })
-    },
-    // Filter out the routes that can be displayed in the sidebar
-    // And generate the internationalized title
-    generateRoutes(routes, basePath = '/', prefixTitle = []) {
-      let res = []
-
-      for (const router of routes) {
-        // skip hidden router
-        if (router.hidden) { continue }
-
-        const data = {
-          path: path.resolve(basePath, router.path),
-          title: [...prefixTitle]
-        }
-
-        if (router.meta && router.meta.title) {
-          data.title = [...data.title, router.meta.title]
-
-          if (router.redirect !== 'noRedirect') {
-            // only push the routes with title
-            // special case: need to exclude parent router without redirect
-            res.push(data)
-          }
-        }
-
-        // recursive child routes
-        if (router.children) {
-          const tempRoutes = this.generateRoutes(router.children, data.path, data.title)
-          if (tempRoutes.length >= 1) {
-            res = [...res, ...tempRoutes]
-          }
-        }
-      }
-      return res
-    },
-    querySearch(query) {
-      if (query !== '') {
-        this.options = this.fuse.search(query)
-      } else {
-        this.options = []
+    handleCommand(value) {
+      const currentId = this.currentApp.id
+      if (currentId !== value.id) {
+        this.$store.dispatch('env/changeAppEnv', value)
+        this.dialogVisible = false
+        this.$message({ message: `切换到APP: ${value.name}（${value.env}）`, type: 'success' })
       }
     }
   }

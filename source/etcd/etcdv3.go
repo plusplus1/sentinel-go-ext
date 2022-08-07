@@ -152,19 +152,63 @@ func (s *sourceImpl) ListCircuitbreakerRules(resources ...string) ([]circuitbrea
 }
 
 func (s *sourceImpl) SaveOrUpdateFlowRule(rule flow.Rule) error {
-	panic("implement me")
+	if e := s.ensureClient(); e != nil {
+		return e
+	}
+	key := s.baseKey + _rulePrefixFlow
+	key += "/" + rule.Resource
+	value, _ := sonic.Marshal(rule)
+	ctx, cancel := context.WithTimeout(context.Background(), 1*time.Second)
+	defer cancel()
+	if _, e := s.client.Put(ctx, key, string(value)); e != nil {
+		return e
+	}
+	return nil
 }
 
 func (s *sourceImpl) SaveOrUpdateCircuitbreakerRule(rule circuitbreaker.Rule) error {
-	panic("implement me")
+	if e := s.ensureClient(); e != nil {
+		return e
+	}
+	key := s.baseKey + _rulePrefixBreak
+	key += "/" + rule.Resource
+	value, _ := sonic.Marshal(rule)
+	ctx, cancel := context.WithTimeout(context.Background(), 1*time.Second)
+	defer cancel()
+	if _, e := s.client.Put(ctx, key, string(value)); e != nil {
+		return e
+	}
+	return nil
 }
 
 func (s *sourceImpl) DeleteFlowRule(rule flow.Rule) error {
-	panic("implement me")
+	if e := s.ensureClient(); e != nil {
+		return e
+	}
+	key := s.baseKey + _rulePrefixFlow
+	key += "/" + rule.Resource
+	ctx, cancel := context.WithTimeout(context.Background(), 1*time.Second)
+	defer cancel()
+	if _, e := s.client.Delete(ctx, key); e != nil {
+		return e
+	}
+	return nil
 }
 
 func (s *sourceImpl) DeleteCircuitbreakerRule(rule circuitbreaker.Rule) error {
-	panic("implement me")
+
+	if e := s.ensureClient(); e != nil {
+		return e
+	}
+	key := s.baseKey + _rulePrefixBreak
+	key += "/" + rule.Resource
+	ctx, cancel := context.WithTimeout(context.Background(), 1*time.Second)
+	defer cancel()
+	if _, e := s.client.Delete(ctx, key); e != nil {
+		return e
+	}
+	return nil
+
 }
 
 func (s *sourceImpl) ensureClient() error {

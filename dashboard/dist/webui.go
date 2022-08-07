@@ -1,4 +1,4 @@
-package webui
+package dist
 
 import "embed"
 
