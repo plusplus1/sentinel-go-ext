@@ -23,7 +23,7 @@ func InstallApi(router gin.IRouter) {
 		staticGroup.StaticFS("/", http.FS(webui.DistFiles))
 		if eg := router.(*gin.Engine); eg != nil {
 			eg.NoRoute(func(c *gin.Context) {
-				c.Redirect(302, "/web/dist/page.html")
+				c.Redirect(302, "/web/dist/home.html")
 			})
 		}
 	}
