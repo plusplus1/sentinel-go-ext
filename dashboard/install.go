@@ -6,7 +6,6 @@ import (
 	"github.com/gin-gonic/gin"
 
 	"github.com/plusplus1/sentinel-go-ext/dashboard/api/app"
-	"github.com/plusplus1/sentinel-go-ext/dashboard/config"
 	"github.com/plusplus1/sentinel-go-ext/dashboard/dist"
 )
 
@@ -16,9 +15,7 @@ func InstallApi(router gin.IRouter) {
 	router.GET("/favicon.ico", func(c *gin.Context) { c.Data(200, `image/x-icon`, dist.FavIco) })
 
 	// set auth
-	auth := gin.BasicAuth(config.AppSettings().Accounts)
-	// set
-	staticGroup := router.Group("/web", auth)
+	staticGroup := router.Group("/web")
 	{
 		staticGroup.StaticFS("/", http.FS(dist.DistFiles))
 		if eg := router.(*gin.Engine); eg != nil {
@@ -28,7 +25,7 @@ func InstallApi(router gin.IRouter) {
 		}
 	}
 
-	apiGroup := router.Group("/api/", auth)
+	apiGroup := router.Group("/api/")
 	{
 		apiGroup.GET("/app/list", app.ListApps)
 		apiGroup.GET("/app/rule/flow/list", app.ListFlowRules)
