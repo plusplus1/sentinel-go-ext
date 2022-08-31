@@ -1,16 +1,22 @@
-accounts:
-  "admin": "admin"
 
-app_list:
-  - app: "app1"
-    desc: "app1 app"
-    env: "prod"
-    url: "etcd://127.0.0.1:2379?timeout=500"
+# MySQL configuration
+mysql:
+  host: "127.0.0.1"
+  port: 3306
+  user: "root"
+  password: ""
+  database: "sentinel_dashboard"
 
-  - app: "app2"
-    desc: "app2 app"
-    env: "dev"
-    url: "etcd://127.0.0.1:2379?timeout=500"
+# Feishu SSO configuration
+# Get these from https://open.feishu.cn/ after creating an application
+feishu:
+  # Application ID (应用 ID)
+  app_id: "cli_a93c368313f8dcc9"
+  # Application Secret (应用密钥)
+  app_secret: "eTF46o5F8hWmwLbpfGtAKenRBSVrESeh"
+  # Redirect URI (回调地址) - must match the Feishu console configuration
+  # Default: http://localhost:6111/api/auth/feishu/callback
+  redirect_uri: "http://localhost:6111/api/auth/feishu/callback"
 
 
 

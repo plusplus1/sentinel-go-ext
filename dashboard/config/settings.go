@@ -18,14 +18,22 @@ type appSettings struct {
 }
 
 type Settings struct {
-	Accounts map[string]string `json:"accounts,omitempty" yaml:"accounts"`
 
-	AppList []struct {
-		App  string `json:"app,omitempty" yaml:"app"`
-		Desc string `json:"desc,omitempty" yaml:"desc"`
-		Url  string `json:"url,omitempty" yaml:"url"`
-		Env  string `json:"env,omitempty" yaml:"env"`
-	} `json:"app_list,omitempty" yaml:"app_list"`
+	// MySQL configuration
+	MySQL struct {
+		Host     string `json:"host,omitempty" yaml:"host"`
+		Port     int    `json:"port,omitempty" yaml:"port"`
+		User     string `json:"user,omitempty" yaml:"user"`
+		Password string `json:"password,omitempty" yaml:"password"`
+		Database string `json:"database,omitempty" yaml:"database"`
+	} `json:"mysql,omitempty" yaml:"mysql"`
+
+	// Feishu SSO configuration
+	Feishu struct {
+		AppID       string `json:"app_id,omitempty" yaml:"app_id"`
+		AppSecret   string `json:"app_secret,omitempty" yaml:"app_secret"`
+		RedirectURI string `json:"redirect_uri,omitempty" yaml:"redirect_uri"`
+	} `json:"feishu,omitempty" yaml:"feishu"`
 }
 
 func InitAppSettings(file string) {
