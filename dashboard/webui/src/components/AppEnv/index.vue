@@ -6,13 +6,13 @@
         <span class="el-dropdown-link">
           <el-link> <span>当前APP: </span>
             <el-tag>
-              {{ currentApp.name }} （ {{ currentApp.env }} ）
+              {{ currentApp.name }} （ {{ currentApp.env }} - {{ currentApp.desc }} ）
             </el-tag>
           </el-link> <i class="el-icon-arrow-down el-icon--right" />
         </span>
         <el-dropdown-menu slot="dropdown">
           <el-dropdown-item v-for="app in allApp" :key="app.id" :command="app">
-            {{ app.name }} （ {{ app.env }} ）
+            {{ app.name }} （ {{ app.env }} - {{ app.desc }} ）
           </el-dropdown-item>
         </el-dropdown-menu>
       </el-dropdown>

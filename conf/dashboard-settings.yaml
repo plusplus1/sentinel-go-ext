@@ -3,12 +3,12 @@ accounts:
 
 app_list:
   - app: "app1"
-    desc: "app1 app"
+    desc: "staging"
     env: "prod"
     url: "etcd://127.0.0.1:2379?timeout=500"
 
   - app: "app2"
-    desc: "app2 app"
+    desc: "preview"
     env: "dev"
     url: "etcd://127.0.0.1:2379?timeout=500"
 
