@@ -7,6 +7,7 @@ import (
 	"os"
 	"strconv"
 	"syscall"
+	"time"
 
 	"github.com/fvbock/endless"
 	"github.com/gin-contrib/gzip"
@@ -15,6 +16,7 @@ import (
 	"go.uber.org/zap"
 
 	"github.com/plusplus1/sentinel-go-ext/dashboard"
+	"github.com/plusplus1/sentinel-go-ext/dashboard/api/app"
 	"github.com/plusplus1/sentinel-go-ext/dashboard/config"
 )
 
@@ -41,6 +43,10 @@ func main() {
 		app.Flags = []cli.Flag{
 			&cli.Int64Flag{Name: `port`, Aliases: []string{`p`}, Usage: `http serve port`, Value: defaultPort},
 			&cli.StringFlag{Name: `conf`, Aliases: []string{`c`}, Usage: `settings file`, Value: `conf/dashboard-settings.yaml`},
+		}
+
+		app.Commands = []*cli.Command{
+			CreateUserCmd(),
 		}
 	}
 
@@ -89,6 +95,16 @@ func before(ctx *cli.Context) error {
 
 	// init routes
 	dashboard.InstallApi(httpEngine)
+
+	go func() {
+		ticker := time.NewTicker(1 * time.Hour)
+		defer ticker.Stop()
+		for range ticker.C {
+			if svc, err := app.GetAuthService(); err == nil {
+				svc.CleanExpiredSessions()
+			}
+		}
+	}()
 
 	return nil
 }

@@ -1,0 +1,28 @@
+schema: spec-driven
+
+# Project context (optional)
+# This is shown to AI when creating artifacts.
+# Add your tech stack, conventions, style guides, domain knowledge, etc.
+context: |
+  Project: Sentinel-Go-Ext (流云哨) - 流量哨兵控制台
+  Tech stack: Go 1.20, React 18 + TypeScript, Ant Design 5.x, Vite 8.x
+  Backend: Gin v1.9.1, etcd client v3.5.11, zap v1.26.0, sonic v1.10.2
+  Frontend: React Router v6, Axios, CSS-in-JS (Ant Design style)
+  Architecture: 前后端分离，RESTful API，静态文件服务
+  Conventions: Go 官方代码风格，React 函数组件 + Hooks，Ant Design 设计规范
+  Domain: 流量控制、熔断规则、应用管理、分布式配置管理
+  Project structure: dashboard/ (后端), frontend/ (前端), source/ (配置源), util/ (工具)
+  Logo: 流云哨 Logo (SVG), 长版/短版动态切换
+  UI theme: 浅色主题，Ant Design 默认样式
+
+# Per-artifact rules (optional)
+# Add custom rules for specific artifacts.
+rules:
+  proposal:
+    - Keep proposals under 500 words
+    - Always include a "Non-goals" section
+    - Include变更背景、变更目标、变更范围、预期成果、风险评估、实施计划
+  tasks:
+    - Break tasks into chunks of max 2 hours
+    - Include已完成任务和待完成任务分类
+    - Include验收标准
