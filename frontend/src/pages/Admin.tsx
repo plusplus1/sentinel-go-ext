@@ -94,7 +94,10 @@ const SuperAdminPanel: React.FC = () => {
         message.error('业务线名称只能包含英文、数字、下划线，长度3-50字符');
         return;
       }
-      const resp = await axios.post('/api/admin/lines', values);
+      const resp = await axios.post('/api/admin/lines', {
+        name: values.name.trim(),
+        description: values.description.trim(),
+      });
       if (resp.data.code === 0) {
         message.success('业务线创建成功');
         setLineModal(false);
@@ -113,7 +116,7 @@ const SuperAdminPanel: React.FC = () => {
     try {
       const values = await editForm.validateFields();
       const resp = await axios.put(`/api/admin/lines/${currentLine.id}`, {
-        description: values.description,
+        description: values.description.trim(),
         status: currentLine.status,
       });
       if (resp.data.code === 0) {
@@ -716,7 +719,7 @@ const LineAdminPanel: React.FC<{ currentUser: CurrentUser }> = () => {
     try {
       const values = await descForm.validateFields();
       const resp = await axios.put(`/api/line-admin/lines/${currentLine.id}`, {
-        description: values.description,
+        description: values.description.trim(),
       });
       if (resp.data.code === 0) {
         message.success('描述更新成功');
@@ -735,7 +738,11 @@ const LineAdminPanel: React.FC<{ currentUser: CurrentUser }> = () => {
     if (!currentLine) return;
     try {
       const values = await appForm.validateFields();
-      const resp = await axios.post(`/api/line-admin/lines/${currentLine.id}/apps`, values);
+      const resp = await axios.post(`/api/line-admin/lines/${currentLine.id}/apps`, {
+        app_key: values.app_key.trim(),
+        description: values.description.trim(),
+        settings: values.settings,
+      });
       if (resp.data.code === 0) {
         message.success('应用创建成功');
         setCreateAppModal(false);
@@ -753,7 +760,11 @@ const LineAdminPanel: React.FC<{ currentUser: CurrentUser }> = () => {
     if (!currentLine || !currentApp) return;
     try {
       const values = await editAppForm.validateFields();
-      const resp = await axios.put(`/api/line-admin/lines/${currentLine.id}/apps/${currentApp.id}`, values);
+      const resp = await axios.put(`/api/line-admin/lines/${currentLine.id}/apps/${currentApp.id}`, {
+        app_key: values.app_key.trim(),
+        description: values.description.trim(),
+        settings: values.settings,
+      });
       if (resp.data.code === 0) {
         message.success('应用更新成功');
         setEditAppModal(false);

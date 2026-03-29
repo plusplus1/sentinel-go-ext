@@ -469,6 +469,13 @@ func PublishRules(c *gin.Context) {
 		return
 	}
 
+	if req.Resource != "" {
+		if changed, err := hasResourceChanged(req.AppID, req.Resource); err == nil && !changed {
+			c.JSON(http.StatusOK, appResp{Msg: "配置无变更，跳过发布", Data: map[string]interface{}{"skipped": true}})
+			return
+		}
+	}
+
 	var appKey, settingsJSON, lineName string
 	var businessLineID int64
 	err := mysqlDB.QueryRow(`
@@ -682,8 +689,10 @@ func compareFlowRule(current *dao.FlowRuleRecord, published map[string]interface
 		{"maxQueueingTimeMs", "最大排队时间(ms)", current.MaxQueueingTimeMs, "maxQueueingTimeMs"},
 		{"tokenCalculateStrategy", "Token计算策略", current.TokenCalculateStrategy, "tokenCalculateStrategy"},
 		{"relationStrategy", "关联策略", current.RelationStrategy, "relationStrategy"},
+		{"refResource", "关联资源", current.RefResource, "refResource"},
 		{"warmUpColdFactor", "冷启动因子", current.WarmUpColdFactor, "warmUpColdFactor"},
 		{"statIntervalInMs", "统计窗口(ms)", current.StatIntervalMs, "statIntervalInMs"},
+		{"clusterMode", "集群模式", current.ClusterMode, "clusterMode"},
 	}
 
 	var diffs []FieldDiff
@@ -777,6 +786,148 @@ func compareCBRule(current *dao.CBRuleRecord, published map[string]interface{}) 
 		})
 	}
 	return diffs
+}
+
+func rulesChanged(currentFlow, publishedFlow, currentCB, publishedCB []map[string]interface{}) bool {
+	if len(currentFlow) != len(publishedFlow) || len(currentCB) != len(publishedCB) {
+		return true
+	}
+	for i, current := range currentFlow {
+		if !mapEqual(current, publishedFlow[i]) {
+			return true
+		}
+	}
+	for i, current := range currentCB {
+		if !mapEqual(current, publishedCB[i]) {
+			return true
+		}
+	}
+	return false
+}
+
+func mapEqual(a, b map[string]interface{}) bool {
+	if len(a) != len(b) {
+		return false
+	}
+	for k, av := range a {
+		bv, exists := b[k]
+		if !exists || !valueEqual(av, bv) {
+			return false
+		}
+	}
+	return true
+}
+
+func valueEqual(a, b interface{}) bool {
+	af, aOk := toFloat64(a)
+	bf, bOk := toFloat64(b)
+	if aOk && bOk {
+		return af == bf
+	}
+	return fmt.Sprintf("%v", a) == fmt.Sprintf("%v", b)
+}
+
+func toFloat64(v interface{}) (float64, bool) {
+	switch val := v.(type) {
+	case float64:
+		return val, true
+	case float32:
+		return float64(val), true
+	case int:
+		return float64(val), true
+	case int64:
+		return float64(val), true
+	case int32:
+		return float64(val), true
+	default:
+		return 0, false
+	}
+}
+
+func hasResourceChanged(appID, resourceStr string) (bool, error) {
+	var resourceID int64
+	fmt.Sscanf(resourceStr, "%d", &resourceID)
+	resourceName := getResourceNameByID(resourceID)
+
+	currentFlow, _ := flowRuleDAOMy.ListRules(appID, resourceID)
+	currentCB, _ := cbRuleDAOMy.ListRules(appID, resourceID)
+
+	var currentFlowMaps []map[string]interface{}
+	for _, r := range currentFlow {
+		if !r.Enabled {
+			continue
+		}
+		rule := map[string]interface{}{
+			"resource":               resourceName,
+			"threshold":              r.Threshold,
+			"metricType":             r.MetricType,
+			"controlBehavior":        r.ControlBehavior,
+			"warmUpPeriodSec":        r.WarmUpPeriodSec,
+			"maxQueueingTimeMs":      r.MaxQueueingTimeMs,
+			"tokenCalculateStrategy": r.TokenCalculateStrategy,
+			"relationStrategy":       r.RelationStrategy,
+			"refResource":            r.RefResource,
+			"warmUpColdFactor":       r.WarmUpColdFactor,
+			"statIntervalInMs":       r.StatIntervalMs,
+			"clusterMode":            r.ClusterMode,
+		}
+		currentFlowMaps = append(currentFlowMaps, rule)
+	}
+
+	var currentCBMaps []map[string]interface{}
+	for _, r := range currentCB {
+		if !r.Enabled {
+			continue
+		}
+		rule := map[string]interface{}{
+			"resource":                     resourceName,
+			"strategy":                     r.Strategy,
+			"threshold":                    r.Threshold,
+			"retryTimeoutMs":               r.RetryTimeoutMs,
+			"minRequestAmount":             r.MinRequestAmount,
+			"statIntervalMs":               r.StatIntervalMs,
+			"statSlidingWindowBucketCount": r.StatSlidingWindowBucketCount,
+			"maxAllowedRtMs":               r.MaxAllowedRtMs,
+			"probeNum":                     r.ProbeNum,
+		}
+		currentCBMaps = append(currentCBMaps, rule)
+	}
+
+	var snapshotJSON string
+	err := mysqlDB.QueryRow(`
+		SELECT snapshot FROM publish_versions
+		WHERE app_id = ?
+		ORDER BY version_number DESC LIMIT 1`, appID).Scan(&snapshotJSON)
+	if err == sql.ErrNoRows {
+		return true, nil
+	}
+	if err != nil {
+		return true, err
+	}
+
+	var snapshot struct {
+		FlowRules []map[string]interface{} `json:"flow_rules"`
+		CBRules   []map[string]interface{} `json:"circuit_breaker_rules"`
+	}
+	if err := json.Unmarshal([]byte(snapshotJSON), &snapshot); err != nil {
+		return true, err
+	}
+
+	var publishedFlowMaps []map[string]interface{}
+	for _, r := range snapshot.FlowRules {
+		if name, _ := r["resource"].(string); name == resourceName {
+			publishedFlowMaps = append(publishedFlowMaps, r)
+		}
+	}
+
+	var publishedCBMaps []map[string]interface{}
+	for _, r := range snapshot.CBRules {
+		if name, _ := r["resource"].(string); name == resourceName {
+			publishedCBMaps = append(publishedCBMaps, r)
+		}
+	}
+
+	return rulesChanged(currentFlowMaps, publishedFlowMaps, currentCBMaps, publishedCBMaps), nil
 }
 
 // GetResourceDiff returns field-level diff between current rules and last published version

@@ -410,8 +410,8 @@ const Resources: React.FC = () => {
     if (!selectedApp) return;
     try {
       const values = await addResourceForm.validateFields();
-      const response = await axios.put(`/api/resource/${values.resource_name}`, {
-        description: values.description || '',
+      const response = await axios.put(`/api/resource/${values.resource_name.trim()}`, {
+        description: (values.description || '').trim(),
         group_id: values.module_id,
       }, {
         params: { app: selectedApp.id },
@@ -502,11 +502,16 @@ const Resources: React.FC = () => {
         rule_type: 'all',
         resource: publishingResource.id,
       });
-      const { code, message: msg } = response.data;
+      const { code, message: msg, data: respData } = response.data;
       if (code === 0) {
-        message.success('发布成功！');
-        setPublishPreviewVisible(false);
-        fetchResources(selectedApp.id);
+        if (respData?.skipped) {
+          message.info(msg || '配置无变更，跳过发布');
+          setPublishPreviewVisible(false);
+        } else {
+          message.success('发布成功！');
+          setPublishPreviewVisible(false);
+          fetchResources(selectedApp.id);
+        }
       } else {
         message.error(msg || '发布失败');
       }
@@ -1261,6 +1266,15 @@ const Resources: React.FC = () => {
                     <Descriptions.Item label="行为">{rule.controlBehavior === 0 ? '直接拒绝' : '匀速排队'}</Descriptions.Item>
                     <Descriptions.Item label="策略">{rule.tokenCalculateStrategy === 0 ? 'Direct' : rule.tokenCalculateStrategy === 1 ? 'WarmUp' : 'MemoryAdaptive'}</Descriptions.Item>
                     <Descriptions.Item label="窗口">{rule.statIntervalInMs ?? 1000} ms</Descriptions.Item>
+                    {rule.controlBehavior === 1 && (
+                      <Descriptions.Item label="排队时间">{rule.maxQueueingTimeMs} ms</Descriptions.Item>
+                    )}
+                    {(rule.tokenCalculateStrategy ?? 0) === 1 && (
+                      <Descriptions.Item label="预热时长">{rule.warmUpPeriodSec} s</Descriptions.Item>
+                    )}
+                    {(rule.tokenCalculateStrategy ?? 0) === 1 && (
+                      <Descriptions.Item label="冷启动因子">{rule.warmUpColdFactor ?? 3}</Descriptions.Item>
+                    )}
                   </Descriptions>
                 </Card>
               )) : <Typography.Text type="secondary">无已发布版本</Typography.Text>}
@@ -1298,6 +1312,10 @@ const Resources: React.FC = () => {
                     <Descriptions.Item label="最小请求">{rule.minRequestAmount}</Descriptions.Item>
                     <Descriptions.Item label="重试超时">{rule.retryTimeoutMs} ms</Descriptions.Item>
                     <Descriptions.Item label="窗口">{rule.statIntervalMs ?? 1000} ms</Descriptions.Item>
+                    {rule.strategy === 0 && (
+                      <Descriptions.Item label="最大RT">{rule.maxAllowedRtMs} ms</Descriptions.Item>
+                    )}
+                    <Descriptions.Item label="探测数量">{(rule.probeNum ?? 0) === 0 ? '不限制' : rule.probeNum}</Descriptions.Item>
                   </Descriptions>
                 </Card>
               )) : <Typography.Text type="secondary">无已发布版本</Typography.Text>}

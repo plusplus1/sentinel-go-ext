@@ -130,7 +130,7 @@ const Groups: React.FC = () => {
         // Update - only description, not name
         const response = await axios.put(`/api/groups/${editingModule.id}`, {
           app_id: selectedApp!.id,
-          description: values.description,
+          description: (values.description || '').trim(),
         });
         const { code, message: msg } = response.data;
         if (code === 0) {
@@ -144,8 +144,8 @@ const Groups: React.FC = () => {
         // Create
         const response = await axios.post('/api/groups', {
           app_id: selectedApp?.id,
-          name: values.name,
-          description: values.description,
+          name: values.name.trim(),
+          description: (values.description || '').trim(),
         });
         const { code, message: msg } = response.data;
         if (code === 0) {

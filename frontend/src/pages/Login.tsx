@@ -17,7 +17,7 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
     setLoading(true);
     try {
       const response = await axios.post('/api/auth/login', {
-        email: values.email,
+        email: values.email.trim(),
         password: values.password,
       }, {
         withCredentials: true,

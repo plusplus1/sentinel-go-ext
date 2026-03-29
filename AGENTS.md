@@ -134,6 +134,22 @@ type appResp struct {
 
 **General**: TypeScript strict mode, components in `.tsx`, Ant Design for UI, React Router v6, Axios for HTTP.
 
+**表单输入 Trim 规范**:
+- 所有表单提交的字符串类型字段，必须在提交前调用 `.trim()` 去除首尾空格
+- 例外情况（不需要trim）：
+  - 密码字段（如 `password`）
+  - JSON 配置字段（如 `settings`，可能有意保留格式空格）
+  - 用户明确要求保留空格的特殊字段
+- 实现方式：在表单提交处理函数中，对 `values` 对象的字符串字段调用 `.trim()`
+- 示例：
+  ```typescript
+  const values = await form.validateFields();
+  const resp = await axios.post('/api/xxx', {
+    name: values.name.trim(),
+    description: (values.description || '').trim(),
+  });
+  ```
+
 ## Project Structure
 
 ```
