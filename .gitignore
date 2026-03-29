@@ -18,4 +18,4 @@ vendor/
 bin/
 dashboard/sentinel-dashboard
 study/
-
+sync_*.sh
